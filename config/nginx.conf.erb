@@ -35,9 +35,17 @@ http {
 	upstream app_server {
 		server unix:/tmp/nginx.socket fail_timeout=0;
  	}
-
 	server {
-		listen <%= ENV["PORT"] %>;
+		listen 80;
+		server_name _;
+		return 301 https://$host$request_uri;
+
+		# Logs
+		access_log log/access_http.log;
+		error_log  log/error_http.log;
+    	}
+	server {
+		listen 443;
 		server_name _;
 		keepalive_timeout 5;
 
@@ -45,7 +53,7 @@ http {
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 			proxy_set_header Host $http_host;
 			proxy_redirect off;
-			proxy_pass http://app_server;
+			proxy_pass https://app_server;
 		}
 	}
 }
